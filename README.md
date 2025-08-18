@@ -82,3 +82,4 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 Built for gym enthusiasts everywhere
  
+# Trigger workflow
