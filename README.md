@@ -1,6 +1,6 @@
 # Simple Gym Check-In App
 
-![SpongeBob Flexing](https://tenor.com/view/sponge-bob-square-pants-work-out-muscles-flex-nickelodeon-gif-3580600)
+![SpongeBob Flexing](https://giphy.com/gifs/spongebob-season-1-episode-11-3ohuPvppoXR2QzFDwY)
 
 A Vue 3 web app for tracking your gym check-ins with a beautiful calendar interface.
 
