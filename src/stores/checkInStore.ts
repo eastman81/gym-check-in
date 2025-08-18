@@ -75,13 +75,15 @@ export const useCheckInStore = defineStore('checkIn', () => {
   const saveCheckIn = async (dayStr: string) => {
     try {
       const [year, month, day] = dayStr.split('-').map(Number)
-      const checkInDate = new Date(year, month, day).toISOString().split('T')[0]
+      // Create date in local timezone to avoid timezone issues
+      const checkInDate = new Date(year, month, day)
+      const formattedDate = checkInDate.toISOString().split('T')[0]
 
       const { error } = await supabase
         .from('check_ins')
         .insert([
           { 
-            check_in_date: checkInDate,
+            check_in_date: formattedDate,
             user_id: 'default' // We'll update this when we add auth
           }
         ])
@@ -101,12 +103,14 @@ export const useCheckInStore = defineStore('checkIn', () => {
   const deleteCheckIn = async (dayStr: string) => {
     try {
       const [year, month, day] = dayStr.split('-').map(Number)
-      const checkInDate = new Date(year, month, day).toISOString().split('T')[0]
+      // Create date in local timezone to avoid timezone issues
+      const checkInDate = new Date(year, month, day)
+      const formattedDate = checkInDate.toISOString().split('T')[0]
 
       const { error } = await supabase
         .from('check_ins')
         .delete()
-        .eq('check_in_date', checkInDate)
+        .eq('check_in_date', formattedDate)
         .eq('user_id', 'default')
 
       if (error) {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import GymCalendar from '../components/GymCalendar.vue'
 import YearOverview from '../components/YearOverview.vue'
+import logoImage from '../assets/arm_red_100.png'
 </script>
 
 <template>
@@ -8,7 +9,7 @@ import YearOverview from '../components/YearOverview.vue'
     <div class="header">
       <div class="header-main">
         <a href="https://hydeparkgym.com/" target="_blank" rel="noopener noreferrer">
-          <img src="@/assets/arm_red_100.png" alt="Hyde Park Gym Logo" class="gym-logo" />
+          <img :src="logoImage" alt="Hyde Park Gym Logo" class="gym-logo" />
         </a>
         <div class="gym-title-container">
           <h1 class="gym-title">HYDE PARK GYM</h1>
