@@ -1,39 +1,83 @@
-# gym-check-in
+# Simple Gym Check-In App
 
-This template should help get you started developing with Vue 3 in Vite.
+![SpongeBob Flexing](https://tenor.com/view/sponge-bob-square-pants-work-out-muscles-flex-nickelodeon-gif-3580600)
 
-## Recommended IDE Setup
+A Vue 3 web app for tracking your gym check-ins with a beautiful calendar interface.
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 🏋️ Features
 
-## Type Support for `.vue` Imports in TS
+- **Interactive Calendar** - Click days to check in/out
+- **Month Navigation** - Browse different months and years
+- **Year Overview** - See check-in counts for all months
+- **Persistent Storage** - Data saved to Supabase database
+- **Responsive Design** - Works on desktop and mobile
+- **Gym Branding** - Official gym logos and styling
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+## 🏢 Current Gyms
 
-## Customize configuration
+- **[Hyde Park Gym](https://hydeparkgym.com/)** - Austin, TX
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## 🚀 Live Demo
 
-## Project Setup
+Visit the app: [https://forresteastland.com/gym-check-in/](https://forresteastland.com/gym-check-in/)
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Vue 3 with Composition API
+- **Styling**: CSS with gym branding
+- **Database**: Supabase (PostgreSQL)
+- **Deployment**: GitHub Pages
+- **Build Tool**: Vite
+
+## 📦 Installation
 
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+## 🏃‍♂️ Development
 
 ```sh
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+## 🚀 Deployment
 
 ```sh
-npm run build
+./deploy.sh
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+## 📁 Project Structure
 
-```sh
-npm run lint
 ```
+src/
+├── components/
+│   ├── GymCalendar.vue      # Main calendar component
+│   └── YearOverview.vue     # Year overview with month counts
+├── stores/
+│   └── checkInStore.ts      # Pinia store with Supabase integration
+├── views/
+│   └── HomeView.vue         # Main page layout
+└── lib/
+    └── supabase.ts          # Supabase client configuration
+```
+
+## 🎯 Usage
+
+1. **Check In**: Click any day on the calendar to mark it as a gym day
+2. **Navigate**: Use arrow buttons to move between months
+3. **Overview**: View your monthly check-in counts in the year overview
+4. **Persistent**: Your data is automatically saved and persists across sessions
+
+## 🔧 Configuration
+
+The app uses environment variables for Supabase configuration:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+## 📝 License
+
+Built for gym enthusiasts everywhere
