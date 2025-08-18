@@ -25,7 +25,8 @@ dist-ssr
 
 # Built files for GitHub Pages (these get copied to root during deployment)
 assets/
-index.html
+# Only ignore built index.html, not the source one
+# index.html
 
 # Environment variables
 .env
