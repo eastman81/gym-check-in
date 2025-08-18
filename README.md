@@ -1,4 +1,4 @@
-# Simple Gym Check-In App
+# Gym Check-In App
 
 ![SpongeBob Flexing](https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExODE1dDJqMTNjZzYycWZqdHRjMHczYWYydWx2ZzZ6a3U1M2wydnVtNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohuPvppoXR2QzFDwY/giphy.gif)
 
