@@ -59,9 +59,9 @@ export const useCheckInStore = defineStore('checkIn', () => {
         return
       }
 
-      // Convert dates to our string format (YYYY-M-D)
+      // Convert dates to our string format (YYYY-M-D) using local timezone
       checkInDays.value = data.map(row => {
-        const date = new Date(row.check_in_date)
+        const date = new Date(row.check_in_date + 'T00:00:00') // Force local timezone
         return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
       })
     } catch (error) {
@@ -75,9 +75,9 @@ export const useCheckInStore = defineStore('checkIn', () => {
   const saveCheckIn = async (dayStr: string) => {
     try {
       const [year, month, day] = dayStr.split('-').map(Number)
-      // Create date in local timezone to avoid timezone issues
-      const checkInDate = new Date(year, month, day)
-      const formattedDate = checkInDate.toISOString().split('T')[0]
+      // Create date in local timezone and format as YYYY-MM-DD
+      const localDate = new Date(year, month, day)
+      const formattedDate = localDate.toLocaleDateString('en-CA') // YYYY-MM-DD format
 
       const { error } = await supabase
         .from('check_ins')
@@ -103,9 +103,9 @@ export const useCheckInStore = defineStore('checkIn', () => {
   const deleteCheckIn = async (dayStr: string) => {
     try {
       const [year, month, day] = dayStr.split('-').map(Number)
-      // Create date in local timezone to avoid timezone issues
-      const checkInDate = new Date(year, month, day)
-      const formattedDate = checkInDate.toISOString().split('T')[0]
+      // Create date in local timezone and format as YYYY-MM-DD
+      const localDate = new Date(year, month, day)
+      const formattedDate = localDate.toLocaleDateString('en-CA') // YYYY-MM-DD format
 
       const { error } = await supabase
         .from('check_ins')
