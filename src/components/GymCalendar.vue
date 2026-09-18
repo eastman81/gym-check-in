@@ -5,9 +5,14 @@
         &lt;
       </button>
       <h2 class="month-title">{{ store.currentMonthName }}</h2>
-      <button @click="store.navigateMonth('next')" class="nav-btn">
+      <button
+        v-if="store.canNavigateMonthNext"
+        @click="store.navigateMonth('next')"
+        class="nav-btn"
+      >
         &gt;
       </button>
+      <span v-else class="nav-spacer" aria-hidden="true"></span>
     </div>
 
     <div class="check-in-counter">
@@ -83,10 +88,17 @@ const handleDayClick = (day: number) => {
 .calendar-container {
   background: white;
   border-radius: 12px;
-  padding: 24px;
+  padding: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
   max-width: 400px;
   margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .calendar-container {
+    padding: 24px;
+  }
 }
 
 .calendar-header {
@@ -107,15 +119,29 @@ const handleDayClick = (day: number) => {
   transition: background-color 0.2s;
 }
 
-.nav-btn:hover {
+.nav-btn:hover:not(:disabled) {
   background: rgb(236, 154, 47);
 }
 
+.nav-spacer {
+  width: 42px;
+  flex-shrink: 0;
+}
+
 .month-title {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 600;
   color: #1f2937;
   margin: 0;
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 480px) {
+  .month-title {
+    font-size: 24px;
+  }
 }
 
 .check-in-counter {
@@ -148,8 +174,15 @@ const handleDayClick = (day: number) => {
   text-align: center;
   font-weight: 600;
   color: #6b7280;
-  padding: 8px;
-  font-size: 14px;
+  padding: 4px 2px;
+  font-size: 12px;
+}
+
+@media (min-width: 480px) {
+  .day-header {
+    padding: 8px;
+    font-size: 14px;
+  }
 }
 
 .calendar-day {

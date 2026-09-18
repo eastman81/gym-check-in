@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { supabase } from '../lib/supabase'
 
 export interface CheckInDay {
@@ -44,6 +44,39 @@ export const useCheckInStore = defineStore('checkIn', () => {
     }
     return count
   })
+
+  const isFutureMonth = (year: number, month: number) => {
+    const today = new Date()
+    if (year > today.getFullYear()) return true
+    if (year < today.getFullYear()) return false
+    return month > today.getMonth()
+  }
+
+  const canNavigateMonthNext = computed(() => {
+    let nextYear = currentYear.value
+    let nextMonth = currentMonth.value + 1
+    if (nextMonth > 11) {
+      nextMonth = 0
+      nextYear++
+    }
+    return !isFutureMonth(nextYear, nextMonth)
+  })
+
+  const canNavigateYearNext = computed(() => {
+    return currentYear.value < new Date().getFullYear()
+  })
+
+  const clampToToday = () => {
+    const today = new Date()
+    if (currentYear.value > today.getFullYear()) {
+      currentYear.value = today.getFullYear()
+      currentMonth.value = today.getMonth()
+    } else if (isFutureMonth(currentYear.value, currentMonth.value)) {
+      currentMonth.value = today.getMonth()
+    }
+  }
+
+  clampToToday()
 
   // Load check-ins from Supabase
   const loadCheckIns = async () => {
@@ -126,6 +159,8 @@ export const useCheckInStore = defineStore('checkIn', () => {
 
   // Actions
   const navigateMonth = (direction: 'prev' | 'next') => {
+    if (direction === 'next' && !canNavigateMonthNext.value) return
+
     if (direction === 'prev') {
       if (currentMonth.value === 0) {
         currentMonth.value = 11
@@ -178,11 +213,17 @@ export const useCheckInStore = defineStore('checkIn', () => {
   }
 
   const setCurrentMonth = (month: number) => {
+    if (isFutureMonth(currentYear.value, month)) return
     currentMonth.value = month
   }
 
   const setCurrentYear = (year: number) => {
+    const today = new Date()
+    if (year > today.getFullYear()) return
     currentYear.value = year
+    if (isFutureMonth(currentYear.value, currentMonth.value)) {
+      currentMonth.value = today.getMonth()
+    }
   }
 
   return {
@@ -194,14 +235,22 @@ export const useCheckInStore = defineStore('checkIn', () => {
     currentMonthCheckInCount,
     isLoading,
     navigateMonth,
+    canNavigateMonthNext,
+    canNavigateYearNext,
+    isFutureMonth,
     toggleCheckIn,
     isCheckedIn,
     getMonthCheckInCount,
     setCurrentMonth,
     setCurrentYear,
+    clampToToday,
     loadCheckIns,
     checkInDays
   }
 }, {
-  persist: true
+  persist: {
+    afterHydrate: (ctx) => {
+      ;(ctx.store as ReturnType<typeof useCheckInStore>).clampToToday()
+    }
+  }
 })

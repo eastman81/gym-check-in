@@ -53,22 +53,40 @@ import logoImage from '../assets/arm_red_100.png'
 
 .gym-title-container {
   display: flex;
-  flex-direction: row;
-  align-content: flex-start;
-  justify-content: flex-start;
-  align-items: center;
-  flex-wrap: wrap;
-  width: 426px;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 100%;
   margin-top: 14px;
 }
 
 .gym-title {
-  font-size: 56px !important;
+  font-size: 32px !important;
   font-weight: 400 !important;
-  line-height: 36px !important;
+  line-height: 1.1 !important;
   text-decoration: none;
   text-rendering: optimizelegibility;
   color: red;
+}
+
+@media (min-width: 480px) {
+  .header-main {
+    flex-wrap: nowrap;
+  }
+
+  .gym-title {
+    font-size: 42px !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .gym-title-container {
+    width: 426px;
+  }
+
+  .gym-title {
+    font-size: 56px !important;
+    line-height: 36px !important;
+  }
 }
 
 .subtitle {
@@ -88,11 +106,16 @@ import logoImage from '../assets/arm_red_100.png'
   gap: 30px;
   max-width: 900px;
   margin: 0 auto;
+  align-items: start;
 }
 
 @media (min-width: 768px) {
+  .home-container {
+    padding: 40px 24px;
+  }
+
   .content-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
     gap: 40px;
   }
 }
