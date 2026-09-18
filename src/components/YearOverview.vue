@@ -14,6 +14,11 @@
       </button>
       <span v-else class="nav-spacer" aria-hidden="true"></span>
     </div>
+
+    <div class="check-in-counter">
+      <span class="counter-label">Check-ins in {{ displayYear }}:</span>
+      <span class="counter-value">{{ yearTotal }}</span>
+    </div>
     
     <div class="months-grid">
       <div
@@ -42,6 +47,8 @@ const store = useCheckInStore()
 
 // Use computed to directly get the current year from the store
 const displayYear = computed(() => store.currentYear)
+
+const yearTotal = computed(() => store.getYearCheckInCount(displayYear.value))
 
 const months = computed(() => {
   const monthNames = [
@@ -145,6 +152,26 @@ const navigateYear = (direction: 'prev' | 'next') => {
   font-weight: 600;
   color: #1f2937;
   margin: 0;
+}
+
+.check-in-counter {
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #f3f4f6;
+  border-radius: 8px;
+}
+
+.counter-label {
+  font-size: 14px;
+  color: #6b7280;
+  margin-right: 8px;
+}
+
+.counter-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: orange;
 }
 
 .months-grid {

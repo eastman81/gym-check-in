@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '../lib/supabase'
 
+const USER_ID = 'default'
+
 export interface CheckInDay {
   year: number
   month: number
@@ -9,18 +11,17 @@ export interface CheckInDay {
 }
 
 export const useCheckInStore = defineStore('checkIn', () => {
-  // Current displayed month/year
   const currentYear = ref(new Date().getFullYear())
   const currentMonth = ref(new Date().getMonth())
 
-  // Store check-in days as an array for persistence
   const checkInDays = ref<string[]>([])
   const isLoading = ref(false)
+  const loadError = ref<string | null>(null)
+  const saveError = ref<string | null>(null)
+  const savingDay = ref<number | null>(null)
 
-  // Computed Set for fast lookup
   const checkInDaysSet = computed(() => new Set(checkInDays.value))
 
-  // Computed properties
   const currentMonthName = computed(() => {
     const date = new Date(currentYear.value, currentMonth.value)
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -35,14 +36,15 @@ export const useCheckInStore = defineStore('checkIn', () => {
   })
 
   const currentMonthCheckInCount = computed(() => {
-    let count = 0
-    for (const dayStr of checkInDays.value) {
-      const [year, month, day] = dayStr.split('-').map(Number)
-      if (year === currentYear.value && month === currentMonth.value) {
-        count++
-      }
-    }
-    return count
+    return getMonthCheckInCount(currentYear.value, currentMonth.value)
+  })
+
+  const isViewingCurrentMonth = computed(() => {
+    const today = new Date()
+    return (
+      currentYear.value === today.getFullYear() &&
+      currentMonth.value === today.getMonth()
+    )
   })
 
   const isFutureMonth = (year: number, month: number) => {
@@ -66,22 +68,27 @@ export const useCheckInStore = defineStore('checkIn', () => {
     return currentYear.value < new Date().getFullYear()
   })
 
-  const clampToToday = () => {
+  const goToToday = () => {
     const today = new Date()
-    if (currentYear.value > today.getFullYear()) {
-      currentYear.value = today.getFullYear()
-      currentMonth.value = today.getMonth()
-    } else if (isFutureMonth(currentYear.value, currentMonth.value)) {
-      currentMonth.value = today.getMonth()
-    }
+    currentYear.value = today.getFullYear()
+    currentMonth.value = today.getMonth()
   }
 
-  clampToToday()
+  let saveErrorTimeout: ReturnType<typeof setTimeout> | null = null
 
-  // Load check-ins from Supabase
+  const showSaveError = (message: string) => {
+    saveError.value = message
+    if (saveErrorTimeout) clearTimeout(saveErrorTimeout)
+    saveErrorTimeout = setTimeout(() => {
+      saveError.value = null
+    }, 4000)
+  }
+
   const loadCheckIns = async () => {
     try {
       isLoading.value = true
+      loadError.value = null
+
       const { data, error } = await supabase
         .from('check_ins')
         .select('check_in_date')
@@ -89,35 +96,34 @@ export const useCheckInStore = defineStore('checkIn', () => {
 
       if (error) {
         console.error('Error loading check-ins:', error)
+        loadError.value = "Couldn't load check-ins. Please refresh and try again."
         return
       }
 
-      // Convert dates to our string format (YYYY-M-D) using local timezone
       checkInDays.value = data.map(row => {
-        const date = new Date(row.check_in_date + 'T00:00:00') // Force local timezone
+        const date = new Date(row.check_in_date + 'T00:00:00')
         return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
       })
     } catch (error) {
       console.error('Error loading check-ins:', error)
+      loadError.value = "Couldn't load check-ins. Please refresh and try again."
     } finally {
       isLoading.value = false
     }
   }
 
-  // Save check-in to Supabase
   const saveCheckIn = async (dayStr: string) => {
     try {
       const [year, month, day] = dayStr.split('-').map(Number)
-      // Create date in local timezone and format as YYYY-MM-DD
       const localDate = new Date(year, month, day)
-      const formattedDate = localDate.toLocaleDateString('en-CA') // YYYY-MM-DD format
+      const formattedDate = localDate.toLocaleDateString('en-CA')
 
       const { error } = await supabase
         .from('check_ins')
         .insert([
-          { 
+          {
             check_in_date: formattedDate,
-            user_id: 'default' // We'll update this when we add auth
+            user_id: USER_ID
           }
         ])
 
@@ -132,19 +138,17 @@ export const useCheckInStore = defineStore('checkIn', () => {
     }
   }
 
-  // Delete check-in from Supabase
   const deleteCheckIn = async (dayStr: string) => {
     try {
       const [year, month, day] = dayStr.split('-').map(Number)
-      // Create date in local timezone and format as YYYY-MM-DD
       const localDate = new Date(year, month, day)
-      const formattedDate = localDate.toLocaleDateString('en-CA') // YYYY-MM-DD format
+      const formattedDate = localDate.toLocaleDateString('en-CA')
 
       const { error } = await supabase
         .from('check_ins')
         .delete()
         .eq('check_in_date', formattedDate)
-        .eq('user_id', 'default')
+        .eq('user_id', USER_ID)
 
       if (error) {
         console.error('Error deleting check-in:', error)
@@ -157,7 +161,6 @@ export const useCheckInStore = defineStore('checkIn', () => {
     }
   }
 
-  // Actions
   const navigateMonth = (direction: 'prev' | 'next') => {
     if (direction === 'next' && !canNavigateMonthNext.value) return
 
@@ -178,21 +181,32 @@ export const useCheckInStore = defineStore('checkIn', () => {
     }
   }
 
-  const toggleCheckIn = async (day: number) => {
+  const toggleCheckIn = async (day: number): Promise<boolean> => {
     const dayStr = `${currentYear.value}-${currentMonth.value}-${day}`
-    
-    if (checkInDaysSet.value.has(dayStr)) {
-      // Remove check-in
-      const success = await deleteCheckIn(dayStr)
-      if (success) {
-        checkInDays.value = checkInDays.value.filter(d => d !== dayStr)
+
+    savingDay.value = day
+    saveError.value = null
+
+    try {
+      if (checkInDaysSet.value.has(dayStr)) {
+        const success = await deleteCheckIn(dayStr)
+        if (success) {
+          checkInDays.value = checkInDays.value.filter(d => d !== dayStr)
+          return true
+        }
+        showSaveError("Couldn't remove check-in. Please try again.")
+        return false
       }
-    } else {
-      // Add check-in
+
       const success = await saveCheckIn(dayStr)
       if (success) {
         checkInDays.value = [...checkInDays.value, dayStr]
+        return true
       }
+      showSaveError("Couldn't save check-in. Please try again.")
+      return false
+    } finally {
+      savingDay.value = null
     }
   }
 
@@ -206,6 +220,17 @@ export const useCheckInStore = defineStore('checkIn', () => {
     for (const dayStr of checkInDays.value) {
       const [y, m] = dayStr.split('-').map(Number)
       if (y === year && m === month) {
+        count++
+      }
+    }
+    return count
+  }
+
+  const getYearCheckInCount = (year: number) => {
+    let count = 0
+    for (const dayStr of checkInDays.value) {
+      const [y] = dayStr.split('-').map(Number)
+      if (y === year) {
         count++
       }
     }
@@ -233,24 +258,31 @@ export const useCheckInStore = defineStore('checkIn', () => {
     daysInCurrentMonth,
     firstDayOfMonth,
     currentMonthCheckInCount,
+    isViewingCurrentMonth,
     isLoading,
+    loadError,
+    saveError,
+    savingDay,
     navigateMonth,
     canNavigateMonthNext,
     canNavigateYearNext,
+    goToToday,
     isFutureMonth,
     toggleCheckIn,
     isCheckedIn,
     getMonthCheckInCount,
+    getYearCheckInCount,
     setCurrentMonth,
     setCurrentYear,
-    clampToToday,
     loadCheckIns,
     checkInDays
   }
 }, {
   persist: {
+    pick: ['checkInDays'],
     afterHydrate: (ctx) => {
-      ;(ctx.store as ReturnType<typeof useCheckInStore>).clampToToday()
+      const store = ctx.store as ReturnType<typeof useCheckInStore>
+      store.goToToday()
     }
   }
 })
